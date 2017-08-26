@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Test map</title>
+<link href="css/singlePageTemplate.css" rel="stylesheet" type="text/css">
+<!--The following script tag downloads a font from the Adobe Edge Web Fonts server for use within the web page. We recommend that you do not modify it.-->
+<script>var __adobewebfontsappname__="dreamweaver"</script>
+<script src="http://use.edgefonts.net/source-sans-pro:n2:default.js" type="text/javascript"></script>
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+<!-- Mapbox headers -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css" rel="stylesheet" />
+<script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+<!-- Main Container -->
+<div class="container">
+<!-- Map Container -->
+<div id="map"></div>
+<!-- Map Script -->
+<script src="./js/mapbox-access-token.js"></script>
+<script>
+var map = new mapboxgl.Map({
+    container: 'map',
+    //style: "mapbox://styles/mapbox/dark-v9",
+	//style: "mapbox://styles/oliverdavis/cj6qkooen3n022rp7cefenea8",
+	style: "mapbox://styles/oliverdavis/cj6qau4kn3dsv2rme72b1rezu",
+	center: [-2.8007, 54.0466],
+	zoom: 5,
+	maxZoom: 11
+});
+	
+let dataColours = ["#20D2FF","#23BCEE","#26A7DD","#2A92CC","#2D7DBB","#3168AA","#345399",
+"#383E88","#3B2977","#3F1466","#541561","#69165D","#7E1859","#941955","#A91A50","#BE1C4C",
+"#D41D48","#E91E44","#FF2040"];
+	
+let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
+let colourScale = d3.scaleLinear().domain([0,50,100]).range(["#20D2FF","#3F1466","#FF2040"]).interpolate(d3.interpolateHcl);
+let ns = numberScale(50);
+let cs = colourScale(50);
+console.log(ns +","+ cs);
+	
+map.on('load', function () {
+	
+	d3.json("./IQ.json", function(err, data){
+		
+		if(err){throw err};
+		
+		// Calculate the max, min and mid points of the data
+		let dMax = d3.max(data.features, d => d.properties.A);
+		let dMin = d3.min(data.features, d => d.properties.A);
+		let dMid = dMin+((dMax-dMin)/2);
+		
+		//let numberScale = d3.scaleQuantize().domain([dMin,dMax]).range(d3.range(1,19,1));
+		let colourDomain = d3.range(dMin,dMax,(dMax-dMin)/19);
+		//colourDomain.shift();
+		//console.log(colourDomain);
+		
+		
+		//let colourScale = d3.scaleLinear().domain([dMin,dMid,dMax]).range(["#20D2FF","#3F1466","#FF2040"]).interpolate(d3.interpolateHcl);
+		//let ns = numberScale(50);
+		//let cs = colourScale(50);
+		//console.log(ns +","+ cs);
+		
+		console.log(dMin+","+dMid+","+dMax);
+		
+		colourStops = colourDomain.map(function(e,i){return [e,dataColours[i]]});
+		console.log(colourStops);
+
+		map.addSource("ace", {type: "geojson", data: data});
+		map.addLayer({
+			"id": "points",
+			"type": "circle",
+			"source": "ace",
+			"paint": {
+				"circle-radius": {
+					"base": 1.75,
+					"stops": [[1, 2], [11, 30]]
+				},
+				"circle-color": {
+					"property": "A",
+					"stops": colourStops
+				},
+				"circle-blur": {
+					"base": 3,
+					"stops": [[1, 0], [11, 0.5]]
+				},
+				"circle-opacity": {
+					"base": 3,
+					"stops": [[1, 1], [11, 0.7]]
+				}
+			}
+		});
+	} );
+});
+	
+// log the zoom level to console
+/* map.on("zoom", function(){
+	console.log(map.getZoom());
+}) */
+	
+</script>
+</div>
+<!-- Main Container Ends -->
+</body>
+</html>
