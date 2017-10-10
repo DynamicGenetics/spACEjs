@@ -72,7 +72,7 @@ map.on('load', function () {
 		
 		console.log(dMin+","+dMid+","+dMax);
 		
-		colourStops = colourDomain.map(function(e,i){return [e,dataColours[i]]});
+		let colourStops = colourDomain.map(function(e,i){return [e,dataColours[i]]});
 		console.log(colourStops);
 
 		map.addSource("ace", {type: "geojson", data: data});
