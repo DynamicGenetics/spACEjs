@@ -31,11 +31,11 @@ body {
 	width: 300px;
 	height: 300px;
 	position: absolute;
-	bottom: 0px;
+	top: 0px;
 	right: 0px;
 	background: #2a2a2a;
 	z-index: 2;
-	border-top: solid 1px #CCCCCC;
+	border-bottom: solid 1px #CCCCCC;
 	border-left: solid 1px #CCCCCC;
 }
 
