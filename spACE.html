@@ -165,34 +165,45 @@ map.on('load', function () {
 
 // Create a popup, but don't add it to the map yet.
 let popup = new mapboxgl.Popup({
-closeButton: false,
-closeOnClick: false
+	closeButton: false,
+	closeOnClick: false
 });
- 
-map.on('mouseenter', 'points', function(e) {
+
+map.on('mouseover', 'points', function(e) {
 // Change the cursor style as a UI indicator.
-map.getCanvas().style.cursor = 'pointer';
+	map.getCanvas().style.cursor = 'pointer';
+});
+	
+map.on('click', 'points', function(e) {
+// Change the cursor style as a UI indicator.
+	//map.getCanvas().style.cursor = 'pointer';
  
-var coordinates = e.features[0].geometry.coordinates.slice();
-var description = e.features[0].properties.A;
+	let coordinates = e.features[0].geometry.coordinates.slice();
+	let description = d3.format(".2f")(e.features[0].properties.A);
  
-// Ensure that if the map is zoomed out such that multiple
-// copies of the feature are visible, the popup appears
-// over the copy being pointed to.
-while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-}
+	// Ensure that if the map is zoomed out such that multiple
+	// copies of the feature are visible, the popup appears
+	// over the copy being pointed to.
+	while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+		coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+	}
  
-// Populate the popup and set its coordinates
-// based on the feature found.
-popup.setLngLat(coordinates)
-.setHTML(description)
-.addTo(map);
+	// Populate the popup and set its coordinates
+	// based on the feature found.
+	popup.setLngLat(coordinates)
+		.setHTML(description)
+		.addTo(map);
+	
+	let markerPlace = x(e.features[0].properties.A);
+	let markerBase = y(0);
+	
+	let marker = svg.append("g").attr("transform", `translate(${markerPlace},${margin.top})`).append("path").attr("d",`M 0 0 L 0 ${markerBase}`).attr("stroke","orange").classed("marker",true);
 });
  
 map.on('mouseleave', 'points', function() {
-map.getCanvas().style.cursor = '';
-popup.remove();
+	map.getCanvas().style.cursor = '';
+	popup.remove();
+	d3.selectAll(".marker").remove();
 });	
 
 	});
