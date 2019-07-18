@@ -16,9 +16,9 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 <!-- Mapbox headers -->
-<script src="https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css" rel="stylesheet" />
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css" rel="stylesheet" />
+<script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
 <!-- Main Container -->
@@ -26,12 +26,118 @@
 <!-- Map Container -->
 <div id="map">
 <!-- Chart Container -->
-<div class="chart">chart</div>
+<div class="chart"><svg id="histogram"></svg></div>
 	</div>
 <!-- Map Script -->
 <script src="./js/mapbox-access-token.js"></script>
-
+<!-- script src="./js/spACE_histogram.js"></script -->
 <script>
+	
+width=300;
+height=300;
+margin = ({top: 20, right: 20, bottom: 30, left: 40})
+	
+var svg = d3.select("#histogram");
+	
+//svg.append("circle").attr("cx",50).attr("cy",50).attr("fill","orange").attr("r",25);
+	
+	//var data = [1,2,1,2,3,4,6,13,2,3,1,5,6,9,12,11,5,6,5,6,7];
+
+	const datafile = d3.json("./IQ.json");
+	
+	datafile.then(function(data){
+		
+		console.log(data);
+	
+	let values = data.features.map(d => d.properties.A);	
+		
+	var x = d3.scaleLinear()
+    .domain(d3.extent(values)).nice()
+    .range([margin.left, width - margin.right])
+	
+	var histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
+		
+		console.log(histogram)
+	
+		var bins = histogram(values)
+	
+		console.log(bins);
+		let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
+		console.log(means);
+		
+	var y = d3.scaleLinear()
+    .domain([0, d3.max(bins, d => d.length)]).nice()
+    .range([height - margin.bottom, margin.top])
+	
+	console.log(x.domain());
+		
+	let percentile = function(d,p){
+		d.sort(d3.ascending);
+		console.log(d);
+		index=Math.round((d.length*p)/100)-1;
+		console.log(index);
+		console.log(d[index]);
+		return(d[index]);
+	};
+		
+	percentile(values,4);
+	percentile(values,96);
+		
+	let colourScale = d3.scaleLinear().domain([x.domain()[0],percentile(values,4),d3.mean(x.domain()),percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
+		
+	data.features.forEach(function(d){d.properties.color = colourScale(d.properties.A)});
+		
+	console.log(data);
+	
+//let colourScale = d3.scaleLinear().domain([x.domain()[0],d3.mean(x.domain()),x.domain()[1]]).range(["#20D2FF","#3F1466","#FF2040"]).interpolate(d3.interpolateHcl);
+
+	console.log([x.domain()[0],d3.mean(x.domain()),x.domain()[1]]);
+//let colourScale = d3.scaleLinear().domain(x.domain()).range(["#20D2FF","#FF2040"]).interpolate(d3.interpolateHcl);
+		
+		console.log(means.map(d => colourScale(d)));
+	
+	xAxis = g => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+	.attr("class","axis_white")
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+    .call(g => g.append("text")
+        .attr("x", width - margin.right)
+        .attr("y", -4)
+        .attr("fill", "#fff")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "end")
+        .text(data.x))
+	
+	yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+	.attr("class","axis_white")
+    .call(d3.axisLeft(y))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 4)
+        .attr("text-anchor", "start")
+        .attr("font-weight", "bold")
+		.attr("fill","#fff")
+        .text(data.y))
+	
+	let bar = svg.append("g")
+      //.attr("fill", "orange")
+    .selectAll("rect")
+    .data(bins)
+    .join("rect")
+      .attr("x", d => x(d.x0) + 1)
+      .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+      .attr("y", d => y(d.length))
+      .attr("height", d => y(0) - y(d.length))
+//	  .attr("fill", d => "orange");
+	  .attr("fill", d => colourScale(d3.mean([d.x0,d.x1])));
+
+  svg.append("g")
+      .call(xAxis);
+  
+  svg.append("g")
+      .call(yAxis);
+	
 var map = new mapboxgl.Map({
     container: 'map',
     //style: "mapbox://styles/mapbox/dark-v9",
@@ -49,16 +155,16 @@ let dataColours = ["#20D2FF","#23BCEE","#26A7DD","#2A92CC","#2D7DBB","#3168AA","
 "#D41D48","#E91E44","#FF2040"];
 	
 let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
-let colourScale = d3.scaleLinear().domain([0,50,100]).range(["#20D2FF","#3F1466","#FF2040"]).interpolate(d3.interpolateHcl);
-let ns = numberScale(50);
-let cs = colourScale(50);
-console.log(ns +","+ cs);
+//let colourScale = d3.scaleLinear().domain([0,50,100]).range(["#20D2FF","#3F1466","#FF2040"]).interpolate(d3.interpolateHcl);
+//let ns = numberScale(50);
+//let cs = colourScale(50);
+//console.log(ns +","+ cs);
 	
 map.on('load', function () {
 	
-	d3.json("./IQ.json", function(err, data){
+	//d3.json("./IQ.json").then(function(data){
 		
-		if(err){throw err};
+		//if(err){throw err};
 		
 		// Calculate the max, min and mid points of the data
 		let dMax = d3.max(data.features, d => d.properties.A);
@@ -67,6 +173,26 @@ map.on('load', function () {
 		
 		//let numberScale = d3.scaleQuantize().domain([dMin,dMax]).range(d3.range(1,19,1));
 		let colourDomain = d3.range(dMin,dMax,(dMax-dMin)/19);
+		
+		let colourDomainCalc = function(dat){
+			let values = dat.map(d => d.properties.A);
+			values = values.map(d => d3.format(".2f")(d));
+			let dMax = d3.max(values);
+			let dMin = d3.min(values);
+			let d4pc = d3.format("d")((values.length*4)/100);
+			let d96pc = values.length - d4pc;
+			d4pc = values[d4pc-1];
+			d96pc = values[d96pc-1];
+			let interval = (d96pc-d4pc)/17;
+			let midRange = d3.range(d4pc,d96pc,interval);
+			let lowEnd = Math.ceil((d4pc-dMin)/interval);
+			let highEnd = Math.ceil((dMax-d96pc)/interval);
+			let lowRange = d3.range((d4pc-(interval*lowEnd)),d4pc,interval);
+			let highRange = d3.range(d96pc,(d96pc+(interval*highEnd)),interval);
+			let colourDomain = lowRange.concat(midRange,highRange);
+			return(colourDomain);
+		};
+		console.log(colourDomainCalc(data.features));
 		//colourDomain.shift();
 		//console.log(colourDomain);
 		
@@ -80,6 +206,8 @@ map.on('load', function () {
 		
 		let colourStops = colourDomain.map(function(e,i){return [e,dataColours[i]]});
 		console.log(colourStops);
+		
+		//spACE_histogram(1);
 
 		map.addSource("ace", {type: "geojson", data: data});
 		map.addLayer({
@@ -87,14 +215,16 @@ map.on('load', function () {
 			"type": "circle",
 			"source": "ace",
 			"paint": {
-				"circle-radius": {
-					"base": 1.75,
-					"stops": [[1, 2], [11, 30]]
-				},
-				"circle-color": {
-					"property": "A",
-					"stops": colourStops
-				},
+				//"circle-radius": {
+				//	"base": 1.75,
+				//	"stops": [[1, 2], [11, 30]]
+				//},
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+//				"circle-color": {
+//					"property": "A",
+//					"stops": colourStops
+//				},
+				"circle-color": ["get","color"],
 				"circle-blur": {
 					"base": 3,
 					"stops": [[1, 0], [11, 0.5]]
@@ -105,8 +235,10 @@ map.on('load', function () {
 				}
 			}
 		});
-	} );
+//	} );
 });
+		
+	});
 	
 // log the zoom level to console
 /* map.on("zoom", function(){
