@@ -194,6 +194,8 @@ map.on('click', 'points', function(e) {
 		.setHTML(description)
 		.addTo(map);
 	
+	d3.selectAll(".marker").remove();
+	
 	let markerPlace = x(e.features[0].properties.A);
 	let markerBase = y(0);
 	
