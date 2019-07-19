@@ -50,11 +50,20 @@ body {
 
 .axis_white line, .axis_white path {
 	stroke: #FFFFFF;
+	shape-rendering: crispEdges;
 }
 
 /* Pop ups */
-.mapboxgl-popup {
-	
+.mapboxgl-popup-content {
+	padding: 7px !important;
+	border-radius: 5px !important;
+}
+
+.mapboxgl-popup-tip {
+	border: 7px solid transparent !important;
+	border-bottom: none !important;
+	border-top-color: #fff !important;
+	font-family: source-sans-pro !important;
 }
 
 /* Navigation */
