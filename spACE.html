@@ -31,20 +31,20 @@
 <!-- Map Script -->
 <script src="./js/mapbox-access-token.js"></script>
 <script>
-	
+
 width=300;
 height=300;
 margin = ({top: 20, right: 20, bottom: 30, left: 40})
-	
+
 var svg = d3.select("#histogram");
 
 const datafile = d3.json("./IQ.json");
-	
+
 datafile.then(function(data){
-		
+
 console.log(data);
 
-let values = data.features.map(d => d.properties.A);	
+let values = data.features.map(d => d.properties.A);
 
 var x = d3.scaleLinear()
 .domain(d3.extent(values)).nice()
@@ -127,7 +127,7 @@ svg.append("g")
 
 svg.append("g")
   .call(yAxis);
-	
+
 var map = new mapboxgl.Map({
     container: 'map',
     //style: "mapbox://styles/mapbox/dark-v9",
@@ -139,13 +139,13 @@ var map = new mapboxgl.Map({
 	zoom: 5,
 	maxZoom: 11
 });
-	
+
 //let dataColours = ["#20D2FF","#23BCEE","#26A7DD","#2A92CC","#2D7DBB","#3168AA","#345399",
 //"#383E88","#3B2977","#3F1466","#541561","#69165D","#7E1859","#941955","#A91A50","#BE1C4C",
 //"#D41D48","#E91E44","#FF2040"];
-	
+
 let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
-	
+
 map.on('load', function () {
 
 		map.addSource("ace", {type: "geojson", data: data});
@@ -169,6 +169,8 @@ let popup = new mapboxgl.Popup({
 	closeOnClick: false
 });
 
+//let popupFlag = false;
+
 //let markerBase = y(0);
 
 //let marker = svg.append("g").attr("transform", `translate(0,${margin.top})`).append("path").attr("d",`M 0 0 L 0 ${markerBase}`).attr("stroke","#F5EF38").classed("marker",true).attr("opacity",0);
@@ -177,51 +179,62 @@ map.on('mouseover', 'points', function(e) {
 // Change the cursor style as a UI indicator.
 	map.getCanvas().style.cursor = 'pointer';
 });
-	
+
 map.on('click', 'points', function(e) {
 // Change the cursor style as a UI indicator.
 	//map.getCanvas().style.cursor = 'pointer';
- 
+
 	let coordinates = e.features[0].geometry.coordinates.slice();
 	let description = d3.format(".2f")(e.features[0].properties.A);
- 
+
 	// Ensure that if the map is zoomed out such that multiple
 	// copies of the feature are visible, the popup appears
 	// over the copy being pointed to.
 	while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
 		coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
 	}
- 
+
 	// Populate the popup and set its coordinates
 	// based on the feature found.
 	popup.setLngLat(coordinates)
 		.setHTML(description)
 		.addTo(map);
-	
+
 	d3.selectAll(".marker").remove();
-	
+
 	let markerPlace = x(e.features[0].properties.A);
 	let markerBase = y(0);
-	
-	let marker = svg.append("g").attr("transform", `translate(${markerPlace},${margin.top})`).append("path").attr("d",`M 0 0 L 0 ${markerBase}`).attr("stroke","#F5EF38").classed("marker",true).attr("shape-rendering", "crispEdges");
-	
+
+	let marker = svg
+				.append("g")
+				.attr("transform", `translate(${markerPlace},${margin.top})`)
+				.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
+				.attr("stroke","#F5EF38")
+				.classed("marker",true)
+				.attr("shape-rendering", "crispEdges");
+
+	//popupFlag = true;
+
 	//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
 });
- 
+
 map.on('mouseleave', 'points', function() {
 	map.getCanvas().style.cursor = '';
 	popup.remove();
-	//d3.selectAll(".marker").transition().duration(500).attr("opacity",0).remove();
+	//if(popupFlag==true){
+	//	popupFlag = false;
+	//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
+	//}
 	d3.selectAll(".marker").remove();
-});	
+});
 
 	});
-	
+
 // log the zoom level to console
 /* map.on("zoom", function(){
 	console.log(map.getZoom());
 }) */
-	
+
 </script>
 </div>
 <!-- Main Container Ends -->
