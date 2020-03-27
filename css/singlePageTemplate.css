@@ -29,7 +29,7 @@ body {
 /* Bar chart */
 .chart {
 	width: 300px;
-	height: 300px;
+	height: 375px;
 	position: absolute;
 	top: 0px;
 	right: 0px;
@@ -42,6 +42,49 @@ body {
 #histogram {
 	width: 300px;
 	height: 300px;
+	padding-bottom: 0px;
+}
+
+.buttons {
+	padding-top: 0px;
+	height: 70px;
+}
+
+#location {
+	height: 35px;
+}
+
+#location div {
+	width: 150px;
+	height: 35px;
+	float: left;
+	text-align: center;
+	color: #FFFFFF;
+}
+
+#location div span {
+	display: block;
+	padding-top: 7px;
+}
+
+
+#ace {
+	width: 300px;
+	height: 35px;
+}
+
+#ace div {
+	height: 35px;
+	width: 100px;
+	background-color: #eeae40;
+	float: left;
+	text-align: center;
+	color: #FFFFFF;
+}
+
+#ace div span {
+	display: block;
+	padding-top: 7px;
 }
 
 .axis_white text {
