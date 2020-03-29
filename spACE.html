@@ -39,7 +39,7 @@
 
 width=300;
 height=300;
-margin = ({top: 20, right: 20, bottom: 30, left: 40})
+margin = ({top: 20, right: 20, bottom: 32, left: 47})
 
 var svg = d3.select("#histogram");
 
@@ -130,8 +130,27 @@ let bar = svg.append("g")
 svg.append("g")
   .call(xAxis);
 
+// text label for the x axis
+svg.append("text")
+   .attr("transform",
+         "translate(" + (width/2) + " ," +
+                        (height) + ")")
+	 .attr("fill", "#fff")
+   .style("text-anchor", "middle")
+   .text("variance");
+
 svg.append("g")
   .call(yAxis);
+
+// text label for the y axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 2)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+			.attr("fill", "#fff")
+      .style("text-anchor", "middle")
+      .text("locations");
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -208,7 +227,8 @@ map.on('click', 'points', function(e) {
 	d3.selectAll(".marker").remove();
 
 	let markerPlace = x(e.features[0].properties.A);
-	let markerBase = y(0);
+	// let markerBase = y(0);
+	let markerBase = height - margin.bottom - margin.top;
 
 	let marker = svg
 				.append("g")
