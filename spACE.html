@@ -170,6 +170,17 @@ var map = new mapboxgl.Map({
 
 let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
 
+let selectedCountry = "UK";
+let selectedComponent = "A";
+
+d3.selectAll("#ace div").on("click", function(){
+	console.log(this.id);
+});
+
+d3.selectAll("#location div").on("click", function(){
+	console.log(this.id);
+});
+
 map.on('load', function () {
 
 		map.addSource("ace", {type: "geojson", data: data});
