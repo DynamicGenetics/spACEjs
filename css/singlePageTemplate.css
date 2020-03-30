@@ -60,6 +60,7 @@ body {
 	float: left;
 	text-align: center;
 	color: #FFFFFF;
+	cursor: pointer;
 }
 
 #location div span {
@@ -80,6 +81,7 @@ body {
 	float: left;
 	text-align: center;
 	color: #FFFFFF;
+	cursor: pointer;
 }
 
 #ace div span {
