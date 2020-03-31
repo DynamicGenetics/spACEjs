@@ -43,7 +43,17 @@ margin = ({top: 20, right: 20, bottom: 32, left: 47})
 
 var svg = d3.select("#histogram");
 
-const datafile = d3.json("./IQ.json");
+const datafile = d3.json("./data/IQ.json");
+
+const promiseSweden = d3.json("./data/asdSweden.json");
+const promiseUK = d3.json("./data/asdUK.json");
+
+Promise.all([promiseSweden, promiseUK]).then(values => {
+	let sweden, uk;
+	[sweden, uk] = values;
+	console.log(sweden);
+	console.log(uk);
+});
 
 datafile.then(function(data){
 
