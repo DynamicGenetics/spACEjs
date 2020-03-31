@@ -43,23 +43,18 @@ margin = ({top: 20, right: 20, bottom: 32, left: 47})
 
 var svg = d3.select("#histogram");
 
-const datafile = d3.json("./data/IQ.json");
+//const datafile = d3.json("./data/IQ.json");
 
 const promiseSweden = d3.json("./data/asdSweden.json");
 const promiseUK = d3.json("./data/asdUK.json");
 
-Promise.all([promiseSweden, promiseUK]).then(values => {
+Promise.all([promiseSweden, promiseUK]).then(data => {
 	let sweden, uk;
-	[sweden, uk] = values;
+	[sweden, uk] = data;
 	console.log(sweden);
 	console.log(uk);
-});
 
-datafile.then(function(data){
-
-console.log(data);
-
-let values = data.features.map(d => d.properties.A);
+let values = uk.features.map(d => d.properties.A);
 
 var x = d3.scaleLinear()
 .domain(d3.extent(values)).nice()
@@ -95,7 +90,7 @@ percentile(values,96);
 
 let colourScale = d3.scaleLinear().domain([x.domain()[0],percentile(values,4),d3.mean(x.domain()),percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
 
-data.features.forEach(function(d){d.properties.color = colourScale(d.properties.A)});
+uk.features.forEach(function(d){d.properties.color = colourScale(d.properties.A)});
 
 console.log(data);
 
@@ -113,7 +108,7 @@ xAxis = g => g
 	.attr("fill", "#fff")
 	.attr("font-weight", "bold")
 	.attr("text-anchor", "end")
-	.text(data.x))
+	.text(uk.x))
 
 yAxis = g => g
 .attr("transform", `translate(${margin.left},0)`)
@@ -125,7 +120,7 @@ yAxis = g => g
 	.attr("text-anchor", "start")
 	.attr("font-weight", "bold")
 	.attr("fill","#fff")
-	.text(data.y))
+	.text(uk.y))
 
 let bar = svg.append("g")
 .selectAll("rect")
@@ -182,7 +177,7 @@ let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
 
 map.on('load', function () {
 
-		map.addSource("ace", {type: "geojson", data: data});
+		map.addSource("ace", {type: "geojson", data: uk});
 		map.addLayer({
 			"id": "points",
 			"type": "circle",
