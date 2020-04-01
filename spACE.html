@@ -90,7 +90,10 @@ percentile(values,96);
 
 let colourScale = d3.scaleLinear().domain([x.domain()[0],percentile(values,4),d3.mean(x.domain()),percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
 
-uk.features.forEach(function(d){d.properties.color = colourScale(d.properties.A)});
+uk.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
+uk.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
+sweden.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
+sweden.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
 
 console.log(data);
 
@@ -177,18 +180,68 @@ let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
 
 map.on('load', function () {
 
-		map.addSource("ace", {type: "geojson", data: uk});
+		map.addSource("aceUK", {type: "geojson", data: uk});
 		map.addLayer({
-			"id": "points",
+			"id": "ukA",
 			"type": "circle",
-			"source": "ace",
+			"source": "aceUK",
+			"layout": {
+				"visibility": "visible"
+			},
 			"paint": {
 				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
-				"circle-color": ["get","color"],
+				"circle-color": ["get","colorA"],
 				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
 				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
 			}
 		});
+
+		map.addLayer({
+			"id": "ukE",
+			"type": "circle",
+			"source": "aceUK",
+			"layout": {
+				"visibility": "none"
+			},
+			"paint": {
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+				"circle-color": ["get","colorE"],
+				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+			}
+		});
+
+		map.addSource("aceSweden", {type: "geojson", data: sweden});
+		map.addLayer({
+			"id": "swedenA",
+			"type": "circle",
+			"source": "aceSweden",
+			"layout": {
+				"visibility": "none"
+			},
+			"paint": {
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+				"circle-color": ["get","colorA"],
+				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+			}
+		});
+
+		map.addLayer({
+			"id": "swedenE",
+			"type": "circle",
+			"source": "aceSweden",
+			"layout": {
+				"visibility": "none"
+			},
+			"paint": {
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+				"circle-color": ["get","colorE"],
+				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+			}
+		});
+
 //	} );
 });
 
