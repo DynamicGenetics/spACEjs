@@ -43,13 +43,18 @@ margin = ({top: 20, right: 20, bottom: 32, left: 47})
 
 var svg = d3.select("#histogram");
 
-const datafile = d3.json("./IQ.json");
+//const datafile = d3.json("./data/IQ.json");
 
-datafile.then(function(data){
+const promiseSweden = d3.json("./data/asdSweden.json");
+const promiseUK = d3.json("./data/asdUK.json");
 
-console.log(data);
+Promise.all([promiseSweden, promiseUK]).then(data => {
+	let sweden, uk;
+	[sweden, uk] = data;
+	console.log(sweden);
+	console.log(uk);
 
-let values = data.features.map(d => d.properties.A);
+let values = uk.features.map(d => d.properties.A);
 
 var x = d3.scaleLinear()
 .domain(d3.extent(values)).nice()
@@ -85,7 +90,10 @@ percentile(values,96);
 
 let colourScale = d3.scaleLinear().domain([x.domain()[0],percentile(values,4),d3.mean(x.domain()),percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
 
-data.features.forEach(function(d){d.properties.color = colourScale(d.properties.A)});
+uk.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
+uk.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
+sweden.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
+sweden.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
 
 console.log(data);
 
@@ -103,7 +111,7 @@ xAxis = g => g
 	.attr("fill", "#fff")
 	.attr("font-weight", "bold")
 	.attr("text-anchor", "end")
-	.text(data.x))
+	.text(uk.x))
 
 yAxis = g => g
 .attr("transform", `translate(${margin.left},0)`)
@@ -115,7 +123,7 @@ yAxis = g => g
 	.attr("text-anchor", "start")
 	.attr("font-weight", "bold")
 	.attr("fill","#fff")
-	.text(data.y))
+	.text(uk.y))
 
 let bar = svg.append("g")
 .selectAll("rect")
@@ -183,18 +191,68 @@ d3.selectAll("#location div").on("click", function(){
 
 map.on('load', function () {
 
-		map.addSource("ace", {type: "geojson", data: data});
+		map.addSource("aceUK", {type: "geojson", data: uk});
 		map.addLayer({
-			"id": "points",
+			"id": "ukA",
 			"type": "circle",
-			"source": "ace",
+			"source": "aceUK",
+			"layout": {
+				"visibility": "visible"
+			},
 			"paint": {
 				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
-				"circle-color": ["get","color"],
+				"circle-color": ["get","colorA"],
 				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
 				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
 			}
 		});
+
+		map.addLayer({
+			"id": "ukE",
+			"type": "circle",
+			"source": "aceUK",
+			"layout": {
+				"visibility": "none"
+			},
+			"paint": {
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+				"circle-color": ["get","colorE"],
+				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+			}
+		});
+
+		map.addSource("aceSweden", {type: "geojson", data: sweden});
+		map.addLayer({
+			"id": "swedenA",
+			"type": "circle",
+			"source": "aceSweden",
+			"layout": {
+				"visibility": "none"
+			},
+			"paint": {
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+				"circle-color": ["get","colorA"],
+				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+			}
+		});
+
+		map.addLayer({
+			"id": "swedenE",
+			"type": "circle",
+			"source": "aceSweden",
+			"layout": {
+				"visibility": "none"
+			},
+			"paint": {
+				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+				"circle-color": ["get","colorE"],
+				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+			}
+		});
+
 //	} );
 });
 
