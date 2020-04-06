@@ -63,11 +63,14 @@ body {
 	cursor: pointer;
 }
 
+#location div:hover {
+	background-color: #4c4c4c;
+}
+
 #location div span {
 	display: block;
 	padding-top: 7px;
 }
-
 
 #ace {
 	width: 300px;
@@ -77,16 +80,23 @@ body {
 #ace div {
 	height: 35px;
 	width: 100px;
-	background-color: #eeae40;
 	float: left;
 	text-align: center;
 	color: #FFFFFF;
 	cursor: pointer;
 }
 
+#ace div:hover {
+	background-color: #4c4c4c;
+}
+
 #ace div span {
 	display: block;
 	padding-top: 7px;
+}
+
+#selected {
+	background-color: #eeae40;
 }
 
 .axis_white text {
