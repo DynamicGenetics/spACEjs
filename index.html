@@ -37,9 +37,9 @@
 <script src="./js/mapbox-access-token.js"></script>
 <script>
 
-width=300;
-height=300;
-margin = ({top: 20, right: 20, bottom: 32, left: 47})
+const width=300;
+const height=300;
+const margin = ({top: 20, right: 20, bottom: 32, left: 47})
 
 var svg = d3.select("#histogram");
 
@@ -56,21 +56,21 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 
 let values = uk.features.map(d => d.properties.A);
 
-var x = d3.scaleLinear()
+let x = d3.scaleLinear()
 .domain(d3.extent(values)).nice()
 .range([margin.left, width - margin.right])
 
-var histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
+let histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
 
 console.log(histogram)
 
-var bins = histogram(values)
+let bins = histogram(values)
 
 console.log(bins);
 let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
 console.log(means);
 
-var y = d3.scaleLinear()
+let y = d3.scaleLinear()
 .domain([0, d3.max(bins, d => d.length)]).nice()
 .range([height - margin.bottom, margin.top])
 
@@ -160,7 +160,7 @@ svg.append("g")
       .style("text-anchor", "middle")
       .text("locations");
 
-var map = new mapboxgl.Map({
+let map = new mapboxgl.Map({
     container: 'map',
     //style: "mapbox://styles/mapbox/dark-v9",
 	//style: "mapbox://styles/mapbox/light-v9",
