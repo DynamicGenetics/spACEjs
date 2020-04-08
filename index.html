@@ -176,24 +176,33 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 	// let selectedCountry = "uk";
 	// let selectedComponent = "a";
 
-
-	d3.selectAll("#ace div").on("click", function(){
-		d3.selectAll("#ace div").classed("selectedComponent", false);
-		d3.select("#"+this.id).classed("selectedComponent", true);
-		console.log(this);
-	});
-
-	d3.selectAll("#location div").on("click", function(){
-		d3.selectAll("#location div").classed("selectedLocation", false);
-		d3.select("#"+this.id).classed("selectedLocation", true);
-		console.log(this);
-	});
-
-	// let currentMap = 'uk.a';
-
 	let selectedCountry = d3.select(".selectedLocation").attr("id");
 	let selectedComponent = d3.select(".selectedComponent").attr("id");
 	let currentMap = selectedCountry + "." + selectedComponent;
+
+	d3.selectAll("#ace div").on("click", function(){
+		let previousMap = currentMap;
+		d3.selectAll("#ace div").classed("selectedComponent", false);
+		d3.select("#"+this.id).classed("selectedComponent", true);
+		selectedCountry = d3.select(".selectedLocation").attr("id");
+		selectedComponent = d3.select(".selectedComponent").attr("id");
+		currentMap = selectedCountry + "." + selectedComponent;
+		// updateMap()
+		// updateChart()
+	});
+
+	d3.selectAll("#location div").on("click", function(){
+		let previousMap = currentMap;
+		d3.selectAll("#location div").classed("selectedLocation", false);
+		d3.select("#"+this.id).classed("selectedLocation", true);
+		selectedCountry = d3.select(".selectedLocation").attr("id");
+		selectedComponent = d3.select(".selectedComponent").attr("id");
+		currentMap = selectedCountry + "." + selectedComponent;
+		// updateMap()
+		// updateChart()
+	});
+
+	// let currentMap = 'uk.a';
 
 	map.on('load', function () {
 
