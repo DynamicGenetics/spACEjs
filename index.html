@@ -184,10 +184,14 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 		let previousMap = currentMap;
 		d3.selectAll("#ace div").classed("selectedComponent", false);
 		d3.select("#"+this.id).classed("selectedComponent", true);
-		selectedCountry = d3.select(".selectedLocation").attr("id");
+		selectedLocation = d3.select(".selectedLocation").attr("id");
 		selectedComponent = d3.select(".selectedComponent").attr("id");
-		currentMap = selectedCountry + "." + selectedComponent;
+		currentMap = selectedLocation + "." + selectedComponent;
+		console.log(previousMap);
+		console.log(currentMap);
 		// updateMap()
+		map.setLayoutProperty(previousMap, 'visibility', 'none');
+		map.setLayoutProperty(currentMap, 'visibility', 'visible');
 		// updateChart()
 	});
 
@@ -195,10 +199,27 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 		let previousMap = currentMap;
 		d3.selectAll("#location div").classed("selectedLocation", false);
 		d3.select("#"+this.id).classed("selectedLocation", true);
-		selectedCountry = d3.select(".selectedLocation").attr("id");
+		selectedLocation = d3.select(".selectedLocation").attr("id");
 		selectedComponent = d3.select(".selectedComponent").attr("id");
-		currentMap = selectedCountry + "." + selectedComponent;
+		currentMap = selectedLocation + "." + selectedComponent;
 		// updateMap()
+		map.setLayoutProperty(previousMap, 'visibility', 'none');
+		map.setLayoutProperty(currentMap, 'visibility', 'visible');
+		if(previousMap.split(".")[0] !== selectedLocation){
+			if(selectedLocation == "uk"){
+				map.flyTo({
+					center: [-2.8007, 54.0466],
+					zoom: 5,
+					essential: true // this animation is considered essential with respect to prefers-reduced-motion
+				})
+			} else {
+				map.flyTo({
+					center: [16.325556, 62.3875],
+					zoom: 4,
+					essential: true // this animation is considered essential with respect to prefers-reduced-motion
+				})
+			}
+		};
 		// updateChart()
 	});
 
