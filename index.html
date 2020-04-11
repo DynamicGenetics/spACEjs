@@ -54,37 +54,59 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 	// console.log(sweden);
 	// console.log(uk);
 
-	let values = uk.features.map(d => d.properties.A);
+	function getColourScale(values){
+		let x = d3.scaleLinear()
+			.domain(d3.extent(values)).nice();
+		let colourScale = d3.scaleLinear()
+			.domain([x.domain()[0],
+				m4p.percentile(values,4),
+				d3.mean(x.domain()),
+				m4p.percentile(values,96),
+				x.domain()[1]])
+			.range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"])
+			.interpolate(d3.interpolateHcl);
+		return colourScale;
+	}
 
-	let x = d3.scaleLinear()
-	.domain(d3.extent(values)).nice()
-	.range([margin.left, width - margin.right])
 
-	let histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
 
-	// console.log(histogram)
-
-	let bins = histogram(values)
-
-	// console.log(bins);
-	let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
-	// console.log(means);
-
-	let y = d3.scaleLinear()
-	.domain([0, d3.max(bins, d => d.length)]).nice()
-	.range([height - margin.bottom, margin.top])
+	// let values = uk.features.map(d => d.properties.A);
+	//
+	// let x = d3.scaleLinear()
+	// 	.domain(d3.extent(values)).nice()
+	// 	.range([margin.left, width - margin.right]);
+	//
+	// let histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
+	//
+	// // console.log(histogram)
+	//
+	// let bins = histogram(values)
+	//
+	// // console.log(bins);
+	// let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
+	// // console.log(means);
+	//
+	// let y = d3.scaleLinear()
+	// 	.domain([0, d3.max(bins, d => d.length)]).nice()
+	// 	.range([height - margin.bottom, margin.top])
 
 	// console.log(x.domain());
 
 	// m4p.percentile(values,4);
 	// m4p.percentile(values,96);
 
-	let colourScale = d3.scaleLinear().domain([x.domain()[0],m4p.percentile(values,4),d3.mean(x.domain()),m4p.percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
+	// let colourScale = d3.scaleLinear().domain([x.domain()[0],m4p.percentile(values,4),d3.mean(x.domain()),m4p.percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
+	let colourScale_uk_a = getColourScale(uk.features.map(d => d.properties.A));
+	uk.features.forEach(function(d){d.properties.colorA = colourScale_uk_a(d.properties.A)});
 
-	uk.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
-	uk.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
-	sweden.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
-	sweden.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
+	let colourScale_uk_e = getColourScale(uk.features.map(d => d.properties.E));
+	uk.features.forEach(function(d){d.properties.colorE = colourScale_uk_e(d.properties.E)});
+
+	let colourScale_sweden_a = getColourScale(sweden.features.map(d => d.properties.A));
+	sweden.features.forEach(function(d){d.properties.colorA = colourScale_sweden_a(d.properties.A)});
+
+	let colourScale_sweden_e = getColourScale(sweden.features.map(d => d.properties.E));
+	sweden.features.forEach(function(d){d.properties.colorE = colourScale_sweden_e(d.properties.E)});
 
 	// console.log(data);
 
@@ -92,68 +114,158 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 
 	// console.log(means.map(d => colourScale(d)));
 
-	function drawHistogram(height, width, margin, ){
+	function drawHistogram(chart_area, name, values, height, width, margin){
 
+		const chart = chart_area.append("g").attr("id", name);
+
+		let x = d3.scaleLinear()
+			.domain(d3.extent(values)).nice()
+			.range([margin.left, width - margin.right]);
+
+		let colourScale = getColourScale(values);
+
+		let histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
+
+		let bins = histogram(values);
+
+		let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
+
+		let y = d3.scaleLinear()
+			.domain([0, d3.max(bins, d => d.length)]).nice()
+			.range([height - margin.bottom, margin.top]);
+
+		xAxis = g => g
+		.attr("transform", `translate(0,${height - margin.bottom})`)
+		.attr("class","axis_white")
+		.call(d3.axisBottom(x).tickSizeOuter(0))
+		.call(g => g.append("text")
+			.attr("x", width - margin.right)
+			.attr("y", -4)
+			.attr("fill", "#fff")
+			.attr("font-weight", "bold")
+			.attr("text-anchor", "end"))
+			// .text(uk.x))
+
+		yAxis = g => g
+		.attr("transform", `translate(${margin.left},0)`)
+		.attr("class","axis_white")
+		.call(d3.axisLeft(y))
+		.call(g => g.select(".domain").remove())
+		.call(g => g.select(".tick:last-of-type text").clone()
+			.attr("x", 4)
+			.attr("text-anchor", "start")
+			.attr("font-weight", "bold")
+			.attr("fill","#fff"))
+			// .text(uk.y))
+
+		let bar = chart.append("g")
+		.selectAll("rect")
+		.data(bins)
+		.join("rect")
+		  .attr("x", d => x(d.x0) + 1)
+		  .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+		  .attr("y", d => y(d.length))
+		  .attr("height", d => y(0) - y(d.length))
+		  .attr("fill", d => colourScale(d3.mean([d.x0,d.x1])));
+
+		chart.append("g")
+		  .call(xAxis);
+
+		// text label for the x axis
+		chart.append("text")
+		   .attr("transform",
+		         "translate(" + (width/2) + " ," +
+		                        (height) + ")")
+			 .attr("fill", "#fff")
+		   .style("text-anchor", "middle")
+		   .text("variance");
+
+		chart.append("g")
+		  .call(yAxis);
+
+		// text label for the y axis
+	  chart.append("text")
+	      .attr("transform", "rotate(-90)")
+	      .attr("y", 2)
+	      .attr("x",0 - (height / 2))
+	      .attr("dy", "1em")
+				.attr("fill", "#fff")
+	      .style("text-anchor", "middle")
+	      .text("locations");
+
+		chart.attr("display", "none");
 	}
 
-	xAxis = g => g
-	.attr("transform", `translate(0,${height - margin.bottom})`)
-	.attr("class","axis_white")
-	.call(d3.axisBottom(x).tickSizeOuter(0))
-	.call(g => g.append("text")
-		.attr("x", width - margin.right)
-		.attr("y", -4)
-		.attr("fill", "#fff")
-		.attr("font-weight", "bold")
-		.attr("text-anchor", "end")
-		.text(uk.x))
+	drawHistogram(svg, "uk_a", uk.features.map(d => d.properties.A), height, width, margin);
+	drawHistogram(svg, "uk_e", uk.features.map(d => d.properties.E), height, width, margin);
+	drawHistogram(svg, "sweden_a", sweden.features.map(d => d.properties.A), height, width, margin);
+	drawHistogram(svg, "sweden_e", sweden.features.map(d => d.properties.E), height, width, margin);
 
-	yAxis = g => g
-	.attr("transform", `translate(${margin.left},0)`)
-	.attr("class","axis_white")
-	.call(d3.axisLeft(y))
-	.call(g => g.select(".domain").remove())
-	.call(g => g.select(".tick:last-of-type text").clone()
-		.attr("x", 4)
-		.attr("text-anchor", "start")
-		.attr("font-weight", "bold")
-		.attr("fill","#fff")
-		.text(uk.y))
+	d3.select("#uk_a").attr("display", "display");
 
-	let bar = chart.append("g")
-	.selectAll("rect")
-	.data(bins)
-	.join("rect")
-	  .attr("x", d => x(d.x0) + 1)
-	  .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-	  .attr("y", d => y(d.length))
-	  .attr("height", d => y(0) - y(d.length))
-	  .attr("fill", d => colourScale(d3.mean([d.x0,d.x1])));
-
-	chart.append("g")
-	  .call(xAxis);
-
-	// text label for the x axis
-	chart.append("text")
-	   .attr("transform",
-	         "translate(" + (width/2) + " ," +
-	                        (height) + ")")
-		 .attr("fill", "#fff")
-	   .style("text-anchor", "middle")
-	   .text("variance");
-
-	chart.append("g")
-	  .call(yAxis);
-
-	// text label for the y axis
-  chart.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 2)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-			.attr("fill", "#fff")
-      .style("text-anchor", "middle")
-      .text("locations");
+	//
+	// xAxis = g => g
+	// .attr("transform", `translate(0,${height - margin.bottom})`)
+	// .attr("class","axis_white")
+	// .call(d3.axisBottom(x).tickSizeOuter(0))
+	// .call(g => g.append("text")
+	// 	.attr("x", width - margin.right)
+	// 	.attr("y", -4)
+	// 	.attr("fill", "#fff")
+	// 	.attr("font-weight", "bold")
+	// 	.attr("text-anchor", "end"))
+	// 	// .text(uk.x))
+	//
+	// yAxis = g => g
+	// .attr("transform", `translate(${margin.left},0)`)
+	// .attr("class","axis_white")
+	// .call(d3.axisLeft(y))
+	// .call(g => g.select(".domain").remove())
+	// .call(g => g.select(".tick:last-of-type text").clone()
+	// 	.attr("x", 4)
+	// 	.attr("text-anchor", "start")
+	// 	.attr("font-weight", "bold")
+	// 	.attr("fill","#fff"))
+	// 	// .text(uk.y))
+	//
+	//
+	// 		// console.log(uk.x);
+	// 		// console.log(sweden.x);
+	//
+	// let bar = chart.append("g")
+	// .selectAll("rect")
+	// .data(bins)
+	// .join("rect")
+	//   .attr("x", d => x(d.x0) + 1)
+	//   .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+	//   .attr("y", d => y(d.length))
+	//   .attr("height", d => y(0) - y(d.length))
+	//   .attr("fill", d => colourScale_uk_a(d3.mean([d.x0,d.x1])));
+	//
+	// chart.append("g")
+	//   .call(xAxis);
+	//
+	// // text label for the x axis
+	// chart.append("text")
+	//    .attr("transform",
+	//          "translate(" + (width/2) + " ," +
+	//                         (height) + ")")
+	// 	 .attr("fill", "#fff")
+	//    .style("text-anchor", "middle")
+	//    .text("variance");
+	//
+	// chart.append("g")
+	//   .call(yAxis);
+	//
+	// // text label for the y axis
+  // chart.append("text")
+  //     .attr("transform", "rotate(-90)")
+  //     .attr("y", 2)
+  //     .attr("x",0 - (height / 2))
+  //     .attr("dy", "1em")
+	// 		.attr("fill", "#fff")
+  //     .style("text-anchor", "middle")
+  //     .text("locations");
 
 	let map = new mapboxgl.Map({
 	    container: 'map',
@@ -162,7 +274,7 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 		//style: "mapbox://styles/oliverdavis/cj6qkooen3n022rp7cefenea8",
 		style: "mapbox://styles/oliverdavis/cj6qau4kn3dsv2rme72b1rezu",
 		//style: "mapbox://styles/oliverdavis/cj8mvdyhx78ss2rno8gr6lpoq",
-		center: [-2.8007, 54.0466],
+		center: [-2.89479, 54.093409],
 		zoom: 5,
 		maxZoom: 11
 	});
@@ -176,9 +288,10 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 	// let selectedCountry = "uk";
 	// let selectedComponent = "a";
 
-	let selectedCountry = d3.select(".selectedLocation").attr("id");
+	let selectedLocation = d3.select(".selectedLocation").attr("id");
 	let selectedComponent = d3.select(".selectedComponent").attr("id");
-	let currentMap = selectedCountry + "." + selectedComponent;
+	let currentMap = selectedLocation + "." + selectedComponent;
+	let currentChart = selectedLocation + "_" + selectedComponent;
 
 	d3.selectAll("#ace div").on("click", function(){
 		let previousMap = currentMap;
@@ -187,12 +300,18 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 		selectedLocation = d3.select(".selectedLocation").attr("id");
 		selectedComponent = d3.select(".selectedComponent").attr("id");
 		currentMap = selectedLocation + "." + selectedComponent;
-		console.log(previousMap);
-		console.log(currentMap);
+		//console.log(previousMap);
+		//console.log(currentMap);
 		// updateMap()
 		map.setLayoutProperty(previousMap, 'visibility', 'none');
 		map.setLayoutProperty(currentMap, 'visibility', 'visible');
 		// updateChart()
+		let previousChart = previousMap.split(".").join("_");
+		console.log(previousChart);
+		d3.select("#" + previousChart).attr("display", "none");
+		currentChart = currentMap.split(".").join("_");
+		console.log(currentMap);
+		d3.select("#" + currentChart).attr("display", "display");
 	});
 
 	d3.selectAll("#location div").on("click", function(){
@@ -208,7 +327,7 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 		if(previousMap.split(".")[0] !== selectedLocation){
 			if(selectedLocation == "uk"){
 				map.flyTo({
-					center: [-2.8007, 54.0466],
+					center: [-2.89479, 54.093409],
 					zoom: 5,
 					essential: true // this animation is considered essential with respect to prefers-reduced-motion
 				})
@@ -221,6 +340,12 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 			}
 		};
 		// updateChart()
+		let previousChart = previousMap.split(".").join("_");
+		console.log(previousChart);
+		d3.select("#" + previousChart).attr("display", "none");
+		currentChart = currentMap.split(".").join("_");
+		console.log(currentMap);
+		d3.select("#" + currentChart).attr("display", "display");
 	});
 
 	// let currentMap = 'uk.a';
