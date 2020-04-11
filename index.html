@@ -19,6 +19,7 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css" rel="stylesheet" />
 <script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="./js/m4p.js"></script>
 </head>
 <body>
 <!-- Main Container -->
@@ -28,8 +29,8 @@
 <!-- Chart Container -->
 <div class="chart"><svg id="histogram"></svg>
 	<div class="buttons">
-		<div id="location"><div id="uk"><span>UK</span></div><div id="sweden"><span>Sweden</span></div></div>
-		<div id="ace"><div id="a"><span>A</span></div><div id="c"><span>C</span></div><div id="e"><span>E</span></div></div>
+		<div id="location"><div id="uk" class="selectedLocation"><span>UK</span></div><div id="sweden"><span>Sweden</span></div></div>
+		<div id="ace"><div id="a" class="selectedComponent"><span>A</span></div><div id="c"><span>C</span></div><div id="e"><span>E</span></div></div>
 	</div>
 </div>
 	</div>
@@ -37,13 +38,12 @@
 <script src="./js/spACE-access-token.js"></script>
 <script>
 
-width=300;
-height=300;
-margin = ({top: 20, right: 20, bottom: 32, left: 47})
+const width=300;
+const height=300;
+const margin = ({top: 20, right: 20, bottom: 35, left: 47})
 
-var svg = d3.select("#histogram");
-
-//const datafile = d3.json("./data/IQ.json");
+const svg = d3.select("#histogram");
+const intervals = svg.append("g");
 
 const promiseSweden = d3.json("./data/asdSweden.json");
 const promiseUK = d3.json("./data/asdUK.json");
@@ -51,255 +51,468 @@ const promiseUK = d3.json("./data/asdUK.json");
 Promise.all([promiseSweden, promiseUK]).then(data => {
 	let sweden, uk;
 	[sweden, uk] = data;
-	console.log(sweden);
-	console.log(uk);
+	// console.log(sweden);
+	// console.log(uk);
 
-let values = uk.features.map(d => d.properties.A);
-
-var x = d3.scaleLinear()
-.domain(d3.extent(values)).nice()
-.range([margin.left, width - margin.right])
-
-var histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
-
-console.log(histogram)
-
-var bins = histogram(values)
-
-console.log(bins);
-let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
-console.log(means);
-
-var y = d3.scaleLinear()
-.domain([0, d3.max(bins, d => d.length)]).nice()
-.range([height - margin.bottom, margin.top])
-
-console.log(x.domain());
-
-let percentile = function(d,p){
-	d.sort(d3.ascending);
-	console.log(d);
-	index=Math.round((d.length*p)/100)-1;
-	console.log(index);
-	console.log(d[index]);
-	return(d[index]);
-};
-
-percentile(values,4);
-percentile(values,96);
-
-let colourScale = d3.scaleLinear().domain([x.domain()[0],percentile(values,4),d3.mean(x.domain()),percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
-
-uk.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
-uk.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
-sweden.features.forEach(function(d){d.properties.colorA = colourScale(d.properties.A)});
-sweden.features.forEach(function(d){d.properties.colorE = colourScale(d.properties.E)});
-
-console.log(data);
-
-console.log([x.domain()[0],d3.mean(x.domain()),x.domain()[1]]);
-
-console.log(means.map(d => colourScale(d)));
-
-xAxis = g => g
-.attr("transform", `translate(0,${height - margin.bottom})`)
-.attr("class","axis_white")
-.call(d3.axisBottom(x).tickSizeOuter(0))
-.call(g => g.append("text")
-	.attr("x", width - margin.right)
-	.attr("y", -4)
-	.attr("fill", "#fff")
-	.attr("font-weight", "bold")
-	.attr("text-anchor", "end")
-	.text(uk.x))
-
-yAxis = g => g
-.attr("transform", `translate(${margin.left},0)`)
-.attr("class","axis_white")
-.call(d3.axisLeft(y))
-.call(g => g.select(".domain").remove())
-.call(g => g.select(".tick:last-of-type text").clone()
-	.attr("x", 4)
-	.attr("text-anchor", "start")
-	.attr("font-weight", "bold")
-	.attr("fill","#fff")
-	.text(uk.y))
-
-let bar = svg.append("g")
-.selectAll("rect")
-.data(bins)
-.join("rect")
-  .attr("x", d => x(d.x0) + 1)
-  .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-  .attr("y", d => y(d.length))
-  .attr("height", d => y(0) - y(d.length))
-  .attr("fill", d => colourScale(d3.mean([d.x0,d.x1])));
-
-svg.append("g")
-  .call(xAxis);
-
-// text label for the x axis
-svg.append("text")
-   .attr("transform",
-         "translate(" + (width/2) + " ," +
-                        (height) + ")")
-	 .attr("fill", "#fff")
-   .style("text-anchor", "middle")
-   .text("variance");
-
-svg.append("g")
-  .call(yAxis);
-
-// text label for the y axis
-  svg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 2)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-			.attr("fill", "#fff")
-      .style("text-anchor", "middle")
-      .text("locations");
-
-var map = new mapboxgl.Map({
-    container: 'map',
-    //style: "mapbox://styles/mapbox/dark-v9",
-	//style: "mapbox://styles/mapbox/light-v9",
-	//style: "mapbox://styles/oliverdavis/cj6qkooen3n022rp7cefenea8",
-	style: "mapbox://styles/oliverdavis/cj6qau4kn3dsv2rme72b1rezu",
-	//style: "mapbox://styles/oliverdavis/cj8mvdyhx78ss2rno8gr6lpoq",
-	center: [-2.8007, 54.0466],
-	zoom: 5,
-	maxZoom: 11
-});
-
-//let dataColours = ["#20D2FF","#23BCEE","#26A7DD","#2A92CC","#2D7DBB","#3168AA","#345399",
-//"#383E88","#3B2977","#3F1466","#541561","#69165D","#7E1859","#941955","#A91A50","#BE1C4C",
-//"#D41D48","#E91E44","#FF2040"];
-
-let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
-
-let selectedCountry = "UK";
-let selectedComponent = "A";
-
-d3.selectAll("#ace div").on("click", function(){
-	console.log(this.id);
-});
-
-d3.selectAll("#location div").on("click", function(){
-	console.log(this.id);
-});
-
-map.on('load', function () {
-
-		map.addSource("aceUK", {type: "geojson", data: uk});
-		map.addLayer({
-			"id": "ukA",
-			"type": "circle",
-			"source": "aceUK",
-			"layout": {
-				"visibility": "visible"
-			},
-			"paint": {
-				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
-				"circle-color": ["get","colorA"],
-				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
-				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
-			}
-		});
-
-		map.addLayer({
-			"id": "ukE",
-			"type": "circle",
-			"source": "aceUK",
-			"layout": {
-				"visibility": "none"
-			},
-			"paint": {
-				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
-				"circle-color": ["get","colorE"],
-				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
-				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
-			}
-		});
-
-		map.addSource("aceSweden", {type: "geojson", data: sweden});
-		map.addLayer({
-			"id": "swedenA",
-			"type": "circle",
-			"source": "aceSweden",
-			"layout": {
-				"visibility": "none"
-			},
-			"paint": {
-				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
-				"circle-color": ["get","colorA"],
-				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
-				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
-			}
-		});
-
-		map.addLayer({
-			"id": "swedenE",
-			"type": "circle",
-			"source": "aceSweden",
-			"layout": {
-				"visibility": "none"
-			},
-			"paint": {
-				'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
-				"circle-color": ["get","colorE"],
-				'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
-				'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
-			}
-		});
-
-//	} );
-});
-
-// Create a popup, but don't add it to the map yet.
-let popup = new mapboxgl.Popup({
-	closeButton: false,
-	closeOnClick: false
-});
-
-//let popupFlag = false;
-
-//let markerBase = y(0);
-
-//let marker = svg.append("g").attr("transform", `translate(0,${margin.top})`).append("path").attr("d",`M 0 0 L 0 ${markerBase}`).attr("stroke","#F5EF38").classed("marker",true).attr("opacity",0);
-
-map.on('mouseover', 'ukA', function(e) {
-// Change the cursor style as a UI indicator.
-	map.getCanvas().style.cursor = 'pointer';
-});
-
-map.on('click', 'ukA', function(e) {
-// Change the cursor style as a UI indicator.
-	//map.getCanvas().style.cursor = 'pointer';
-
-	let coordinates = e.features[0].geometry.coordinates.slice();
-	let description = d3.format(".2f")(e.features[0].properties.A);
-
-	// Ensure that if the map is zoomed out such that multiple
-	// copies of the feature are visible, the popup appears
-	// over the copy being pointed to.
-	while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-		coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+	function getColourScale(values){
+		let x = d3.scaleLinear()
+			.domain(d3.extent(values)).nice();
+		let colourScale = d3.scaleLinear()
+			.domain([x.domain()[0],
+				m4p.percentile(values,4),
+				d3.mean(values),
+				m4p.percentile(values,96),
+				x.domain()[1]])
+			.range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"])
+			.interpolate(d3.interpolateHcl);
+		// console.log([x.domain()[0],
+		// 		m4p.percentile(values,4),
+		// 		d3.mean(x.domain()),
+		// 		m4p.percentile(values,96),
+		// 		x.domain()[1]]);
+		return colourScale;
 	}
 
-	// Populate the popup and set its coordinates
-	// based on the feature found.
-	popup.setLngLat(coordinates)
-		.setHTML(description)
-		.addTo(map);
 
-	d3.selectAll(".marker").remove();
 
-	let markerPlace = x(e.features[0].properties.A);
-	// let markerBase = y(0);
-	let markerBase = height - margin.bottom - margin.top;
+	// let values = uk.features.map(d => d.properties.A);
+	//
+	// let x = d3.scaleLinear()
+	// 	.domain(d3.extent(values)).nice()
+	// 	.range([margin.left, width - margin.right]);
+	//
+	// let histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
+	//
+	// // console.log(histogram)
+	//
+	// let bins = histogram(values)
+	//
+	// // console.log(bins);
+	// let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
+	// // console.log(means);
+	//
+	// let y = d3.scaleLinear()
+	// 	.domain([0, d3.max(bins, d => d.length)]).nice()
+	// 	.range([height - margin.bottom, margin.top])
 
-	let marker = svg
+	// console.log(x.domain());
+
+	// m4p.percentile(values,4);
+	// m4p.percentile(values,96);
+
+	// let colourScale = d3.scaleLinear().domain([x.domain()[0],m4p.percentile(values,4),d3.mean(x.domain()),m4p.percentile(values,96),x.domain()[1]]).range(["#20D2FF","#20D2FF","#3F1466","#FF2040","#FF2040"]).interpolate(d3.interpolateHcl);
+	let colourScale_uk_a = getColourScale(uk.features.map(d => d.properties.A));
+	uk.features.forEach(function(d){d.properties.colorA = colourScale_uk_a(d.properties.A)});
+
+	let colourScale_uk_e = getColourScale(uk.features.map(d => d.properties.E));
+	uk.features.forEach(function(d){d.properties.colorE = colourScale_uk_e(d.properties.E)});
+
+	let colourScale_sweden_a = getColourScale(sweden.features.map(d => d.properties.A));
+	sweden.features.forEach(function(d){d.properties.colorA = colourScale_sweden_a(d.properties.A)});
+
+	let colourScale_sweden_e = getColourScale(sweden.features.map(d => d.properties.E));
+	sweden.features.forEach(function(d){d.properties.colorE = colourScale_sweden_e(d.properties.E)});
+
+	// console.log(data);
+
+	// console.log([x.domain()[0],d3.mean(x.domain()),x.domain()[1]]);
+
+	// console.log(means.map(d => colourScale(d)));
+
+	function drawHistogram(chart_area, name, values, height, width, margin){
+
+		const chart = chart_area.append("g").attr("id", name);
+
+		let x = d3.scaleLinear()
+			.domain(d3.extent(values)).nice()
+			.range([margin.left, width - margin.right]);
+
+		let colourScale = getColourScale(values);
+
+		let histogram = d3.histogram().domain(x.domain()).thresholds(x.ticks(40));
+
+		let bins = histogram(values);
+
+		let means = d3.zip(bins.map(d => d.x0),bins.map(d => d.x1)).map(d => d3.mean(d));
+
+		let y = d3.scaleLinear()
+			.domain([0, d3.max(bins, d => d.length)]).nice()
+			.range([height - margin.bottom, margin.top]);
+
+		xAxis = g => g
+		.attr("transform", `translate(0,${height - margin.bottom})`)
+		.attr("class","axis_white")
+		.call(d3.axisBottom(x).tickSizeOuter(0))
+		// .call(d3.axisBottom(x).tickSizeOuter(0).tickFormat(d3.format("~f")))
+		.call(g => g.append("text")
+			.attr("x", width - margin.right)
+			.attr("y", -4)
+			.attr("fill", "#fff")
+			.attr("font-weight", "bold")
+			.attr("text-anchor", "end"))
+			// .text(uk.x))
+
+		yAxis = g => g
+		.attr("transform", `translate(${margin.left},0)`)
+		.attr("class","axis_white")
+		.call(d3.axisLeft(y))
+		.call(g => g.select(".domain").remove())
+		.call(g => g.select(".tick:last-of-type text").clone()
+			.attr("x", 4)
+			.attr("text-anchor", "start")
+			.attr("font-weight", "bold")
+			.attr("fill","#fff"))
+			// .text(uk.y))
+
+		let bar = chart.append("g")
+		.selectAll("rect")
+		.data(bins)
+		.join("rect")
+		  .attr("x", d => x(d.x0) + 1)
+		  .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+		  .attr("y", d => y(d.length))
+		  .attr("height", d => y(0) - y(d.length))
+		  .attr("fill", d => colourScale(d3.mean([d.x0,d.x1])));
+
+		chart.append("g")
+		  .call(xAxis)
+			.selectAll("text")
+	    .attr("transform", "rotate(25)")
+	    .style("text-anchor", "start");
+
+		// chart.append("g")
+		// 	.call(xAxis)
+		// 	.selectAll("text")
+		// 	.attr("y", 0)
+		// 	.attr("x", 9)
+		// 	.attr("dy", ".35em")
+		// 	.attr("transform", "rotate(20)")
+		// 	.style("text-anchor", "start");
+
+		// text label for the x axis
+		chart.append("text")
+		   .attr("transform",
+		         "translate(" + (width/2) + " ," +
+		                        (height) + ")")
+			 .attr("fill", "#fff")
+		   .style("text-anchor", "middle")
+		   .text("variance");
+
+		chart.append("g")
+		  .call(yAxis);
+
+		// text label for the y axis
+	  chart.append("text")
+	      .attr("transform", "rotate(-90)")
+	      .attr("y", 2)
+	      .attr("x",0 - (height / 2))
+	      .attr("dy", "1em")
+				.attr("fill", "#fff")
+	      .style("text-anchor", "middle")
+	      .text("locations");
+
+		chart.attr("display", "none");
+	}
+
+	drawHistogram(svg, "uk_a", uk.features.map(d => d.properties.A), height, width, margin);
+	drawHistogram(svg, "uk_e", uk.features.map(d => d.properties.E), height, width, margin);
+	drawHistogram(svg, "sweden_a", sweden.features.map(d => d.properties.A), height, width, margin);
+	drawHistogram(svg, "sweden_e", sweden.features.map(d => d.properties.E), height, width, margin);
+
+	d3.select("#uk_a").attr("display", "display");
+
+	//
+	// xAxis = g => g
+	// .attr("transform", `translate(0,${height - margin.bottom})`)
+	// .attr("class","axis_white")
+	// .call(d3.axisBottom(x).tickSizeOuter(0))
+	// .call(g => g.append("text")
+	// 	.attr("x", width - margin.right)
+	// 	.attr("y", -4)
+	// 	.attr("fill", "#fff")
+	// 	.attr("font-weight", "bold")
+	// 	.attr("text-anchor", "end"))
+	// 	// .text(uk.x))
+	//
+	// yAxis = g => g
+	// .attr("transform", `translate(${margin.left},0)`)
+	// .attr("class","axis_white")
+	// .call(d3.axisLeft(y))
+	// .call(g => g.select(".domain").remove())
+	// .call(g => g.select(".tick:last-of-type text").clone()
+	// 	.attr("x", 4)
+	// 	.attr("text-anchor", "start")
+	// 	.attr("font-weight", "bold")
+	// 	.attr("fill","#fff"))
+	// 	// .text(uk.y))
+	//
+	//
+	// 		// console.log(uk.x);
+	// 		// console.log(sweden.x);
+	//
+	// let bar = chart.append("g")
+	// .selectAll("rect")
+	// .data(bins)
+	// .join("rect")
+	//   .attr("x", d => x(d.x0) + 1)
+	//   .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+	//   .attr("y", d => y(d.length))
+	//   .attr("height", d => y(0) - y(d.length))
+	//   .attr("fill", d => colourScale_uk_a(d3.mean([d.x0,d.x1])));
+	//
+	// chart.append("g")
+	//   .call(xAxis);
+	//
+	// // text label for the x axis
+	// chart.append("text")
+	//    .attr("transform",
+	//          "translate(" + (width/2) + " ," +
+	//                         (height) + ")")
+	// 	 .attr("fill", "#fff")
+	//    .style("text-anchor", "middle")
+	//    .text("variance");
+	//
+	// chart.append("g")
+	//   .call(yAxis);
+	//
+	// // text label for the y axis
+  // chart.append("text")
+  //     .attr("transform", "rotate(-90)")
+  //     .attr("y", 2)
+  //     .attr("x",0 - (height / 2))
+  //     .attr("dy", "1em")
+	// 		.attr("fill", "#fff")
+  //     .style("text-anchor", "middle")
+  //     .text("locations");
+
+	let map = new mapboxgl.Map({
+	    container: 'map',
+	    //style: "mapbox://styles/mapbox/dark-v9",
+		//style: "mapbox://styles/mapbox/light-v9",
+		//style: "mapbox://styles/oliverdavis/cj6qkooen3n022rp7cefenea8",
+		style: "mapbox://styles/oliverdavis/cj6qau4kn3dsv2rme72b1rezu",
+		//style: "mapbox://styles/oliverdavis/cj8mvdyhx78ss2rno8gr6lpoq",
+		center: [-2.89479, 54.093409],
+		zoom: 5,
+		maxZoom: 11
+	});
+
+	//let dataColours = ["#20D2FF","#23BCEE","#26A7DD","#2A92CC","#2D7DBB","#3168AA","#345399",
+	//"#383E88","#3B2977","#3F1466","#541561","#69165D","#7E1859","#941955","#A91A50","#BE1C4C",
+	//"#D41D48","#E91E44","#FF2040"];
+
+	// let numberScale = d3.scaleLinear().domain([0,100]).range([100,200]);
+
+	// let selectedCountry = "uk";
+	// let selectedComponent = "a";
+
+	let selectedLocation = d3.select(".selectedLocation").attr("id");
+	let selectedComponent = d3.select(".selectedComponent").attr("id");
+	let currentMap = selectedLocation + "." + selectedComponent;
+	let currentChart = selectedLocation + "_" + selectedComponent;
+
+	d3.selectAll("#ace div").on("click", function(){
+		let previousMap = currentMap;
+		d3.selectAll("#ace div").classed("selectedComponent", false);
+		d3.select("#"+this.id).classed("selectedComponent", true);
+		selectedLocation = d3.select(".selectedLocation").attr("id");
+		selectedComponent = d3.select(".selectedComponent").attr("id");
+		currentMap = selectedLocation + "." + selectedComponent;
+		//console.log(previousMap);
+		//console.log(currentMap);
+		// updateMap()
+		map.setLayoutProperty(previousMap, 'visibility', 'none');
+		map.setLayoutProperty(currentMap, 'visibility', 'visible');
+		// updateChart()
+		let previousChart = previousMap.split(".").join("_");
+		// console.log(previousChart);
+		d3.select("#" + previousChart).attr("display", "none");
+		currentChart = currentMap.split(".").join("_");
+		// console.log(currentMap);
+		d3.select("#" + currentChart).attr("display", "display");
+	});
+
+	d3.selectAll("#location div").on("click", function(){
+		let previousMap = currentMap;
+		d3.selectAll("#location div").classed("selectedLocation", false);
+		d3.select("#"+this.id).classed("selectedLocation", true);
+		selectedLocation = d3.select(".selectedLocation").attr("id");
+		selectedComponent = d3.select(".selectedComponent").attr("id");
+		currentMap = selectedLocation + "." + selectedComponent;
+		// updateMap()
+		map.setLayoutProperty(previousMap, 'visibility', 'none');
+		map.setLayoutProperty(currentMap, 'visibility', 'visible');
+		if(previousMap.split(".")[0] !== selectedLocation){
+			if(selectedLocation == "uk"){
+				map.flyTo({
+					center: [-2.89479, 54.093409],
+					zoom: 5,
+					essential: true // this animation is considered essential with respect to prefers-reduced-motion
+				})
+			} else {
+				map.flyTo({
+					center: [16.325556, 62.3875],
+					zoom: 4,
+					essential: true // this animation is considered essential with respect to prefers-reduced-motion
+				})
+			}
+		};
+		// updateChart()
+		let previousChart = previousMap.split(".").join("_");
+		// console.log(previousChart);
+		d3.select("#" + previousChart).attr("display", "none");
+		currentChart = currentMap.split(".").join("_");
+		// console.log(currentMap);
+		d3.select("#" + currentChart).attr("display", "display");
+	});
+
+	// let currentMap = 'uk.a';
+
+	map.on('load', function () {
+
+			map.addSource("aceUK", {type: "geojson", data: uk});
+			map.addLayer({
+				"id": "uk.a",
+				"type": "circle",
+				"source": "aceUK",
+				"layout": {
+					"visibility": "visible"
+				},
+				"paint": {
+					'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+					"circle-color": ["get","colorA"],
+					'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+					'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+				}
+			});
+
+			map.addLayer({
+				"id": "uk.e",
+				"type": "circle",
+				"source": "aceUK",
+				"layout": {
+					"visibility": "none"
+				},
+				"paint": {
+					'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+					"circle-color": ["get","colorE"],
+					'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+					'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+				}
+			});
+
+			map.addSource("aceSweden", {type: "geojson", data: sweden});
+			map.addLayer({
+				"id": "sweden.a",
+				"type": "circle",
+				"source": "aceSweden",
+				"layout": {
+					"visibility": "none"
+				},
+				"paint": {
+					'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+					"circle-color": ["get","colorA"],
+					'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+					'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+				}
+			});
+
+			map.addLayer({
+				"id": "sweden.e",
+				"type": "circle",
+				"source": "aceSweden",
+				"layout": {
+					"visibility": "none"
+				},
+				"paint": {
+					'circle-radius': ['interpolate', ["exponential", 1.75], ['zoom'], 1, 2, 11, 30],
+					"circle-color": ["get","colorE"],
+					'circle-blur': ['interpolate', ["exponential", 3], ['zoom'], 1, 0, 11, 0.5],
+					'circle-opacity': ['interpolate', ["exponential", 3], ['zoom'], 1, 1, 11, 0.7]
+				}
+			});
+
+	//	} );
+	});
+
+	// Create a popup, but don't add it to the map yet.
+	let popup = new mapboxgl.Popup({
+		closeButton: false,
+		closeOnClick: false
+	});
+
+	//let popupFlag = false;
+
+	//let markerBase = y(0);
+
+	//let marker = svg.append("g").attr("transform", `translate(0,${margin.top})`).append("path").attr("d",`M 0 0 L 0 ${markerBase}`).attr("stroke","#F5EF38").classed("marker",true).attr("opacity",0);
+
+	const maps = ["uk.a", "uk.e", "sweden.a", "sweden.e"];
+
+	maps.forEach((item, i) => {
+		map.on('mouseover', item, function(e) {
+		// Change the cursor style as a UI indicator.
+			map.getCanvas().style.cursor = 'pointer';
+		});
+	});
+
+	// map.on('mouseover', currentMap, function(e) {
+	// // Change the cursor style as a UI indicator.
+	// 	map.getCanvas().style.cursor = 'pointer';
+	// });
+
+	maps.forEach((item, i) => {
+		map.on('click', item, function(e) {
+		// Change the cursor style as a UI indicator.
+			//map.getCanvas().style.cursor = 'pointer';
+
+			let coordinates = e.features[0].geometry.coordinates.slice();
+			let description = d3.format(".2f")(e.features[0].properties[item.split(".")[1].toUpperCase()]);
+
+			// Ensure that if the map is zoomed out such that multiple
+			// copies of the feature are visible, the popup appears
+			// over the copy being pointed to.
+			while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+				coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+			}
+
+			// Populate the popup and set its coordinates
+			// based on the feature found.
+			popup.setLngLat(coordinates)
+				.setHTML(description)
+				.addTo(map);
+
+			d3.selectAll(".marker").remove();
+
+			let values;
+			let dataname = item.split(".");
+
+			if(dataname[0] === "uk"){
+				if(dataname[1] === "a"){
+					values = uk.features.map(d => d.properties.A);
+				} else {
+					values = uk.features.map(d => d.properties.E);
+				}
+			} else {
+				if(dataname[1] === "a"){
+					values = sweden.features.map(d => d.properties.A);
+				} else {
+					values = sweden.features.map(d => d.properties.E);
+				}
+			}
+
+			// console.log(e.features[0]);
+			// console.log(e.features[0].properties[item.split(".")[1].toUpperCase()]);
+
+			let x = d3.scaleLinear()
+				.domain(d3.extent(values)).nice()
+				.range([margin.left, width - margin.right]);
+
+			let markerPlace = x(e.features[0].properties[item.split(".")[1].toUpperCase()]);
+			// let markerBase = y(0);
+			let markerBase = height - margin.bottom - margin.top;
+
+			let marker = d3.select("#" + item.split(".").join("_"))
 				.append("g")
 				.attr("transform", `translate(${markerPlace},${margin.top})`)
 				.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
@@ -307,22 +520,89 @@ map.on('click', 'ukA', function(e) {
 				.classed("marker",true)
 				.attr("shape-rendering", "crispEdges");
 
-	//popupFlag = true;
+			let lowerint = x(e.features[0].properties[item.split(".")[1].toUpperCase() + "_lo"])
+			let upperint = x(e.features[0].properties[item.split(".")[1].toUpperCase() + "_hi"])
+			let intwidth = upperint - lowerint;
+			let intheight = height - margin.bottom - margin.top;
 
-	//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
-});
+			let confint = intervals
+				.append("g")
+				.append("rect")
+				.attr("x", lowerint)
+				.attr("y", margin.top)
+				.attr("width", intwidth)
+				.attr("height", intheight)
+				.attr("fill", "#353535")
+				.classed("marker",true);
 
-map.on('mouseleave', 'ukA', function() {
-	map.getCanvas().style.cursor = '';
-	popup.remove();
-	//if(popupFlag==true){
-	//	popupFlag = false;
-	//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
-	//}
-	d3.selectAll(".marker").remove();
-});
+			//popupFlag = true;
 
+			//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
+		});
 	});
+
+	// map.on('click', currentMap, function(e) {
+	// // Change the cursor style as a UI indicator.
+	// 	//map.getCanvas().style.cursor = 'pointer';
+	//
+	// 	let coordinates = e.features[0].geometry.coordinates.slice();
+	// 	let description = d3.format(".2f")(e.features[0].properties.A);
+	//
+	// 	// Ensure that if the map is zoomed out such that multiple
+	// 	// copies of the feature are visible, the popup appears
+	// 	// over the copy being pointed to.
+	// 	while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+	// 		coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+	// 	}
+	//
+	// 	// Populate the popup and set its coordinates
+	// 	// based on the feature found.
+	// 	popup.setLngLat(coordinates)
+	// 		.setHTML(description)
+	// 		.addTo(map);
+	//
+	// 	d3.selectAll(".marker").remove();
+	//
+	// 	let markerPlace = x(e.features[0].properties.A);
+	// 	// let markerBase = y(0);
+	// 	let markerBase = height - margin.bottom - margin.top;
+	//
+	// 	let marker = chart
+	// 				.append("g")
+	// 				.attr("transform", `translate(${markerPlace},${margin.top})`)
+	// 				.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
+	// 				.attr("stroke","#F5EF38")
+	// 				.classed("marker",true)
+	// 				.attr("shape-rendering", "crispEdges");
+	//
+	// 	//popupFlag = true;
+	//
+	// 	//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
+	// });
+
+	maps.forEach((item, i) => {
+		map.on('mouseleave', item, function() {
+			map.getCanvas().style.cursor = '';
+			popup.remove();
+			//if(popupFlag==true){
+			//	popupFlag = false;
+			//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
+			//}
+			d3.selectAll(".marker").remove();
+		});
+	});
+
+	// map.on('mouseleave', currentMap, function() {
+	// 	map.getCanvas().style.cursor = '';
+	// 	popup.remove();
+	// 	//if(popupFlag==true){
+	// 	//	popupFlag = false;
+	// 	//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
+	// 	//}
+	// 	d3.selectAll(".marker").remove();
+	// });
+
+});
 
 // log the zoom level to console
 /* map.on("zoom", function(){
