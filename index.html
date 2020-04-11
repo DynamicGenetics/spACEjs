@@ -43,7 +43,7 @@ const height=300;
 const margin = ({top: 20, right: 20, bottom: 35, left: 47})
 
 const svg = d3.select("#histogram");
-const chart = svg.append("g");
+// const chart = svg.append("g");
 
 const promiseSweden = d3.json("./data/asdSweden.json");
 const promiseUK = d3.json("./data/asdUK.json");
@@ -484,11 +484,35 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 
 			d3.selectAll(".marker").remove();
 
-			let markerPlace = x(e.features[0].properties.A);
+			let values;
+			let dataname = item.split(".");
+
+			if(dataname[0] === "uk"){
+				if(dataname[1] === "a"){
+					values = uk.features.map(d => d.properties.A);
+				} else {
+					values = uk.features.map(d => d.properties.E);
+				}
+			} else {
+				if(dataname[1] === "a"){
+					values = sweden.features.map(d => d.properties.A);
+				} else {
+					values = sweden.features.map(d => d.properties.E);
+				}
+			}
+
+			// console.log(e.features[0]);
+			// console.log(e.features[0].properties[item.split(".")[1].toUpperCase()]);
+
+			let x = d3.scaleLinear()
+				.domain(d3.extent(values)).nice()
+				.range([margin.left, width - margin.right]);
+
+			let markerPlace = x(e.features[0].properties[item.split(".")[1].toUpperCase()]);
 			// let markerBase = y(0);
 			let markerBase = height - margin.bottom - margin.top;
 
-			let marker = chart
+			let marker = d3.select("#" + item.split(".").join("_"))
 						.append("g")
 						.attr("transform", `translate(${markerPlace},${margin.top})`)
 						.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
