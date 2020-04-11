@@ -43,7 +43,7 @@ const height=300;
 const margin = ({top: 20, right: 20, bottom: 35, left: 47})
 
 const svg = d3.select("#histogram");
-// const chart = svg.append("g");
+const intervals = svg.append("g");
 
 const promiseSweden = d3.json("./data/asdSweden.json");
 const promiseUK = d3.json("./data/asdUK.json");
@@ -513,12 +513,27 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 			let markerBase = height - margin.bottom - margin.top;
 
 			let marker = d3.select("#" + item.split(".").join("_"))
-						.append("g")
-						.attr("transform", `translate(${markerPlace},${margin.top})`)
-						.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
-						.attr("stroke","#F5EF38")
-						.classed("marker",true)
-						.attr("shape-rendering", "crispEdges");
+				.append("g")
+				.attr("transform", `translate(${markerPlace},${margin.top})`)
+				.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
+				.attr("stroke","#F5EF38")
+				.classed("marker",true)
+				.attr("shape-rendering", "crispEdges");
+
+			let lowerint = x(e.features[0].properties[item.split(".")[1].toUpperCase() + "_lo"])
+			let upperint = x(e.features[0].properties[item.split(".")[1].toUpperCase() + "_hi"])
+			let intwidth = upperint - lowerint;
+			let intheight = height - margin.bottom - margin.top;
+
+			let confint = intervals
+				.append("g")
+				.append("rect")
+				.attr("x", lowerint)
+				.attr("y", margin.top)
+				.attr("width", intwidth)
+				.attr("height", intheight)
+				.attr("fill", "#353535")
+				.classed("marker",true);
 
 			//popupFlag = true;
 
