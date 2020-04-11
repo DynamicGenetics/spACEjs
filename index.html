@@ -447,59 +447,121 @@ Promise.all([promiseSweden, promiseUK]).then(data => {
 
 	//let marker = svg.append("g").attr("transform", `translate(0,${margin.top})`).append("path").attr("d",`M 0 0 L 0 ${markerBase}`).attr("stroke","#F5EF38").classed("marker",true).attr("opacity",0);
 
-	map.on('mouseover', currentMap, function(e) {
-	// Change the cursor style as a UI indicator.
-		map.getCanvas().style.cursor = 'pointer';
+	const maps = ["uk.a", "uk.e", "sweden.a", "sweden.e"];
+
+	maps.forEach((item, i) => {
+		map.on('mouseover', item, function(e) {
+		// Change the cursor style as a UI indicator.
+			map.getCanvas().style.cursor = 'pointer';
+		});
 	});
 
-	map.on('click', currentMap, function(e) {
-	// Change the cursor style as a UI indicator.
-		//map.getCanvas().style.cursor = 'pointer';
+	// map.on('mouseover', currentMap, function(e) {
+	// // Change the cursor style as a UI indicator.
+	// 	map.getCanvas().style.cursor = 'pointer';
+	// });
 
-		let coordinates = e.features[0].geometry.coordinates.slice();
-		let description = d3.format(".2f")(e.features[0].properties.A);
+	maps.forEach((item, i) => {
+		map.on('click', item, function(e) {
+		// Change the cursor style as a UI indicator.
+			//map.getCanvas().style.cursor = 'pointer';
 
-		// Ensure that if the map is zoomed out such that multiple
-		// copies of the feature are visible, the popup appears
-		// over the copy being pointed to.
-		while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-			coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-		}
+			let coordinates = e.features[0].geometry.coordinates.slice();
+			let description = d3.format(".2f")(e.features[0].properties[item.split(".")[1].toUpperCase()]);
 
-		// Populate the popup and set its coordinates
-		// based on the feature found.
-		popup.setLngLat(coordinates)
-			.setHTML(description)
-			.addTo(map);
+			// Ensure that if the map is zoomed out such that multiple
+			// copies of the feature are visible, the popup appears
+			// over the copy being pointed to.
+			while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+				coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+			}
 
-		d3.selectAll(".marker").remove();
+			// Populate the popup and set its coordinates
+			// based on the feature found.
+			popup.setLngLat(coordinates)
+				.setHTML(description)
+				.addTo(map);
 
-		let markerPlace = x(e.features[0].properties.A);
-		// let markerBase = y(0);
-		let markerBase = height - margin.bottom - margin.top;
+			d3.selectAll(".marker").remove();
 
-		let marker = chart
-					.append("g")
-					.attr("transform", `translate(${markerPlace},${margin.top})`)
-					.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
-					.attr("stroke","#F5EF38")
-					.classed("marker",true)
-					.attr("shape-rendering", "crispEdges");
+			let markerPlace = x(e.features[0].properties.A);
+			// let markerBase = y(0);
+			let markerBase = height - margin.bottom - margin.top;
 
-		//popupFlag = true;
+			let marker = chart
+						.append("g")
+						.attr("transform", `translate(${markerPlace},${margin.top})`)
+						.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
+						.attr("stroke","#F5EF38")
+						.classed("marker",true)
+						.attr("shape-rendering", "crispEdges");
 
-		//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
+			//popupFlag = true;
+
+			//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
+		});
 	});
 
-	map.on('mouseleave', currentMap, function() {
-		map.getCanvas().style.cursor = '';
-		popup.remove();
-		//if(popupFlag==true){
-		//	popupFlag = false;
-		//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
-		//}
-		d3.selectAll(".marker").remove();
+	// map.on('click', currentMap, function(e) {
+	// // Change the cursor style as a UI indicator.
+	// 	//map.getCanvas().style.cursor = 'pointer';
+	//
+	// 	let coordinates = e.features[0].geometry.coordinates.slice();
+	// 	let description = d3.format(".2f")(e.features[0].properties.A);
+	//
+	// 	// Ensure that if the map is zoomed out such that multiple
+	// 	// copies of the feature are visible, the popup appears
+	// 	// over the copy being pointed to.
+	// 	while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+	// 		coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+	// 	}
+	//
+	// 	// Populate the popup and set its coordinates
+	// 	// based on the feature found.
+	// 	popup.setLngLat(coordinates)
+	// 		.setHTML(description)
+	// 		.addTo(map);
+	//
+	// 	d3.selectAll(".marker").remove();
+	//
+	// 	let markerPlace = x(e.features[0].properties.A);
+	// 	// let markerBase = y(0);
+	// 	let markerBase = height - margin.bottom - margin.top;
+	//
+	// 	let marker = chart
+	// 				.append("g")
+	// 				.attr("transform", `translate(${markerPlace},${margin.top})`)
+	// 				.append("path").attr("d",`M 0 0 L 0 ${markerBase}`)
+	// 				.attr("stroke","#F5EF38")
+	// 				.classed("marker",true)
+	// 				.attr("shape-rendering", "crispEdges");
+	//
+	// 	//popupFlag = true;
+	//
+	// 	//marker.attr("transform", `translate(${markerPlace},${margin.top})`).attr("opacity",1);
+	// });
+
+	maps.forEach((item, i) => {
+		map.on('mouseleave', item, function() {
+			map.getCanvas().style.cursor = '';
+			popup.remove();
+			//if(popupFlag==true){
+			//	popupFlag = false;
+			//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
+			//}
+			d3.selectAll(".marker").remove();
+		});
 	});
+
+	// map.on('mouseleave', currentMap, function() {
+	// 	map.getCanvas().style.cursor = '';
+	// 	popup.remove();
+	// 	//if(popupFlag==true){
+	// 	//	popupFlag = false;
+	// 	//	d3.selectAll(".marker").transition().duration(2000).attr("opacity",50);
+	// 	//}
+	// 	d3.selectAll(".marker").remove();
+	// });
 
 });
 
