@@ -45,6 +45,33 @@ const margin = ({top: 20, right: 20, bottom: 35, left: 47})
 const svg = d3.select("#histogram");
 const intervals = svg.append("g");
 
+const sidebar = d3.select("div.chart");
+const open_close = sidebar.append("svg").attr("id","open_close");
+open_close.append("circle").attr("id", "opener").attr("cx", 20).attr("cy", 20).attr("r", 20).attr("fill", "#fff").attr("opacity", 0.5);
+let open = true;
+const cross_lines = open_close.append("g").attr("id", "cross_lines");
+cross_lines.append("path").attr("d", "M 20 10 V 30").attr("stroke", "black").attr("stroke-width", 4).attr("stroke-linecap", "round").attr("stroke-opacity", 0.7);
+cross_lines.append("path").attr("d", "M 10 20 H 30").attr("stroke", "black").attr("stroke-width", 4).attr("stroke-linecap", "round").attr("stroke-opacity", 0.7);
+// cross_lines.attr("transform", "rotate(-45, 20, 20)");
+open_close.style("transform", "rotate(-45deg)");
+
+d3.select("#opener").on("click", e => {
+	if(open){
+		// console.log("closing");
+		sidebar.transition().duration(750).style("right", "-300px");
+		// cross_lines.transition().duration(750).attr("transform", "rotate(0, 20, 20)");
+		open_close.transition().duration(750).style("transform", "rotate(90deg)");
+		open = false;
+	} else {
+		// console.log("opening");
+		sidebar.transition().duration(750).style("right", "0px");
+		// cross_lines.transition().duration(750).attr("transform", "rotate(-45, 20, 20)");
+		open_close.transition().duration(750).style("transform", "rotate(-45deg)");
+		open = true;
+	}
+});
+
+
 const promiseSweden = d3.json("./data/asdSweden.json");
 const promiseUK = d3.json("./data/asdUK.json");
 
