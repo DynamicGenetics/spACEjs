@@ -105,6 +105,22 @@ body {
 	background-color: #5e5e5e;
 }
 
+#open_close {
+	position: absolute;
+	top: 5px;
+	left: -45px;
+	height: 40px;
+	width: 40px;
+}
+
+#open_close circle {
+	cursor: pointer;
+}
+
+#cross_lines {
+	pointer-events: none;
+}
+
 .axis_white text {
 	fill: #FFFFFF;
 }
