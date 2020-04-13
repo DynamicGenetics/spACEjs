@@ -40,7 +40,7 @@ body {
 	top: 5px;
 	left: 8px;
 	width: 85px;
-	z-index: 7;
+	z-index: 6;
 }
 
 /* Bar chart */
@@ -133,7 +133,7 @@ body {
 	left: -46px;
 	height: 40px;
 	width: 40px;
-	z-index: 8;
+	z-index: 7;
 }
 
 #open_close circle {
