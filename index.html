@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Test map</title>
+<meta name="author" content="Oliver Davis">
+<meta name="description" content="Copyright (C) Oliver Davis 2020.
+		This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version. See https://www.gnu.org/licenses/">
+<title>Dynamic Genetics spACE</title>
 <link href="css/singlePageTemplate.css" rel="stylesheet" type="text/css">
 <!--The following script tag downloads a font from the Adobe Edge Web Fonts server for use within the web page. We recommend that you do not modify it.-->
 <script>var __adobewebfontsappname__="dreamweaver"</script>
@@ -26,6 +32,8 @@
 <div class="container">
 <!-- Map Container -->
 <div id="map">
+
+<a href="https://dynamicgenetics.org"><img id="logo" src="./images/Dynamic Genetics logo.png" alt="Dynamic Genetics"></a>
 <!-- Chart Container -->
 <div class="chart"><svg id="histogram"></svg>
 	<div class="buttons">
@@ -58,7 +66,7 @@ open_close.style("transform", "rotate(-45deg)");
 d3.select("#opener").on("click", e => {
 	if(open){
 		// console.log("closing");
-		sidebar.transition().duration(750).style("right", "-300px");
+		sidebar.transition().duration(750).style("right", "-301px");
 		// cross_lines.transition().duration(750).attr("transform", "rotate(0, 20, 20)");
 		open_close.transition().duration(750).style("transform", "rotate(90deg)");
 		open = false;
