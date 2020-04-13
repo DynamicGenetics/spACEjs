@@ -30,6 +30,31 @@
 <body>
 <!-- Main Container -->
 <div class="container">
+
+<div id="info"><div id="info-text">
+	<h2>spACE</h2>
+	<p>spACE maps how the nature and nurture of complex human traits varies
+		geographically within populations. It is developed by the Dynamic Genetics lab,
+		part of the MRC Integrative Epidemiology Unit at the University of Bristol, UK.
+		The approach uses data from cohorts of twins to break down the variation in
+		complex traits into genetic (A) and environmental influences (C and E;
+		technically anything other than DNA sequence).</p>
+	<p>The maps here show genetic and environmental influences on autistic traits
+		vary in the UK and Sweden. Use the buttons in the side bar to select maps showing genetic (A) or
+		environmental (E) influences in either country (C is approximately zero across
+		all maps, so is not shown here). On each map, red points are high compared to
+		the mean, whereas blue points are low. The distribution of values is shown in
+		the side bar histogram, coloured in the same way as the map. Selecting a point
+		on the map shows its value and where this value lies in the histogram (with 95%
+		confidence intervals in grey).</p>
+	<p>The map models raw variance, so A and E are not constrained to add up to one
+		in any location. However, the values can be roughly interpreted as the proportion
+		of the variation in the population explained by genetic or environmental
+		differences among people of the same ancestral background at each location,
+		highlighting how the local environment can draw out or mask genetic influences
+		on human characteristics.</p>
+</div></div>
+
 <!-- Map Container -->
 <div id="map">
 
@@ -57,9 +82,9 @@ const sidebar = d3.select("div.chart");
 const open_close = sidebar.append("svg").attr("id","open_close");
 open_close.append("circle").attr("id", "opener").attr("cx", 20).attr("cy", 20).attr("r", 20).attr("fill", "#fff").attr("opacity", 0.5);
 let open = true;
-const cross_lines = open_close.append("g").attr("id", "cross_lines");
-cross_lines.append("path").attr("d", "M 20 10 V 30").attr("stroke", "black").attr("stroke-width", 4).attr("stroke-linecap", "round").attr("stroke-opacity", 0.7);
-cross_lines.append("path").attr("d", "M 10 20 H 30").attr("stroke", "black").attr("stroke-width", 4).attr("stroke-linecap", "round").attr("stroke-opacity", 0.7);
+const cross_lines = open_close.append("g").attr("class", "cross_lines");
+cross_lines.append("path").attr("d", "M 20 10 V 30").attr("stroke", "#4c4c4c").attr("stroke-width", 4).attr("stroke-linecap", "round");
+cross_lines.append("path").attr("d", "M 10 20 H 30").attr("stroke", "#4c4c4c").attr("stroke-width", 4).attr("stroke-linecap", "round");
 // cross_lines.attr("transform", "rotate(-45, 20, 20)");
 open_close.style("transform", "rotate(-45deg)");
 
@@ -79,6 +104,28 @@ d3.select("#opener").on("click", e => {
 	}
 });
 
+const info_button = sidebar.append("svg").attr("id","info_button");
+info_button.append("circle").attr("id", "informer").attr("cx", 20).attr("cy", 20).attr("r", 20).attr("fill", "#fff").attr("opacity", 0.5);
+const ie = info_button.append("g").attr("id", "ie");
+ie.append("path").attr("d", "M 20 21 V 29").attr("stroke", "#4c4c4c").attr("stroke-width", 4).attr("stroke-linecap", "round");
+ie.append("circle").attr("cx", 20).attr("cy", 13).attr("r", 2).attr("stroke", "#4c4c4c");
+
+d3.select("#informer").on("click", e => {
+	// console.log("clicked");
+	d3.select("#info").style("visibility", "visible");
+});
+
+const info_text = d3.select("#info-text");
+const close_info = info_text.append("svg").attr("id","close_info");
+close_info.append("circle").attr("id", "closer").attr("cx", 20).attr("cy", 20).attr("r", 20).attr("fill", "#fff").attr("opacity", 0.5);
+const ex = close_info.append("g").attr("class", "cross_lines");
+ex.append("path").attr("d", "M 20 10 V 30").attr("stroke", "#4c4c4c").attr("stroke-width", 4).attr("stroke-linecap", "round");
+ex.append("path").attr("d", "M 10 20 H 30").attr("stroke", "#4c4c4c").attr("stroke-width", 4).attr("stroke-linecap", "round");
+
+d3.select("#closer").on("click", e => {
+	// console.log("clicked");
+	d3.select("#info").style("visibility", "hidden");
+});
 
 const promiseSweden = d3.json("./data/asdSweden.json");
 const promiseUK = d3.json("./data/asdUK.json");
