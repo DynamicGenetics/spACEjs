@@ -42,14 +42,27 @@ body {
 	visibility: hidden;
 }
 
-#info-text {
-	/* margin: auto; */
-	font-family: source-sans-pro, sans-serif;
-	position: absolute;
-	top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-	width: 430px;
+@media (min-width: 440px) {
+	#info-text {
+		/* margin: auto; */
+		font-family: source-sans-pro, sans-serif;
+		position: absolute;
+		top: 50%;
+	  left: 50%;
+	  transform: translate(-50%, -50%);
+		width: 430px;
+	}
+}
+
+@media (max-width: 439px) {
+	#info-text {
+		/* margin: auto; */
+		font-family: source-sans-pro, sans-serif;
+		position: absolute;
+		top: 5px;
+	  left: 0px;
+		width: 400px;
+	}
 }
 
 /* Map */
@@ -231,7 +244,7 @@ body {
 	#close_info {
 		position: absolute;
 		top: 18px;
-		righr: 0px;
+		right: 5px;
 		height: 40px;
 		width: 40px;
 		z-index: 7;
