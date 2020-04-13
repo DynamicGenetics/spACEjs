@@ -133,6 +133,7 @@ body {
 	left: -46px;
 	height: 40px;
 	width: 40px;
+	z-index: 8;
 }
 
 #open_close circle {
