@@ -112,6 +112,11 @@ body {
 	padding-top: 7px;
 }
 
+#ace div#c {
+	color: #5c5c5c;
+	pointer-events: none;
+}
+
 #location div.selectedLocation {
 	/* background-color: #eeae40; */
 	background-color: #5e5e5e;
