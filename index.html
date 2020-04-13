@@ -60,7 +60,7 @@ open_close.style("transform", "rotate(-45deg)");
 d3.select("#opener").on("click", e => {
 	if(open){
 		// console.log("closing");
-		sidebar.transition().duration(750).style("right", "-300px");
+		sidebar.transition().duration(750).style("right", "-301px");
 		// cross_lines.transition().duration(750).attr("transform", "rotate(0, 20, 20)");
 		open_close.transition().duration(750).style("transform", "rotate(90deg)");
 		open = false;
