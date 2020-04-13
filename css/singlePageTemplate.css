@@ -127,13 +127,26 @@ body {
 	background-color: #5e5e5e;
 }
 
-#open_close {
-	position: absolute;
-	top: 5px;
-	left: -46px;
-	height: 40px;
-	width: 40px;
-	z-index: 7;
+@media (min-width: 440px) {
+	#open_close {
+		position: absolute;
+		top: 5px;
+		left: -46px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+	}
+}
+
+@media (max-width: 439px) {
+	#open_close {
+		position: fixed;
+		top: 5px;
+		right: 5px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+	}
 }
 
 #open_close circle {
