@@ -28,6 +28,29 @@ body {
 	background-color: #FFFFFF;
 }
 
+#info {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	height: 100vh;
+	background-color: #2a2a2aee;
+	z-index: 8;
+	color: #ffffff;
+	visibility: hidden;
+}
+
+#info-text {
+	/* margin: auto; */
+	position: absolute;
+	top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+	width: 430px;
+}
+
 /* Map */
 #map {
 	width: 100%;
@@ -127,22 +150,94 @@ body {
 	background-color: #5e5e5e;
 }
 
-#open_close {
-	position: absolute;
-	top: 5px;
-	left: -46px;
-	height: 40px;
-	width: 40px;
-	z-index: 7;
+@media (min-width: 440px) {
+	#open_close {
+		position: absolute;
+		top: 5px;
+		left: -46px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+	}
+}
+
+@media (max-width: 439px) {
+	#open_close {
+		position: fixed;
+		top: 5px;
+		right: 5px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+	}
 }
 
 #open_close circle {
 	cursor: pointer;
 }
 
-#cross_lines {
+.cross_lines {
 	pointer-events: none;
 }
+
+@media (min-width: 440px) {
+	#info_button {
+		position: absolute;
+		top: 50px;
+		left: -46px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+	}
+}
+
+@media (max-width: 439px) {
+	#info_button {
+		position: fixed;
+		top: 50px;
+		right: 5px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+	}
+}
+
+#info_button circle {
+	cursor: pointer;
+}
+
+#ie {
+	pointer-events: none;
+}
+
+#close_info circle {
+	cursor: pointer;
+}
+
+@media (min-width: 440px) {
+	#close_info {
+		position: absolute;
+		top: 18px;
+		left: -55px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+		transform: rotate(-45deg);
+	}
+}
+
+@media (max-width: 439px) {
+	#close_info {
+		position: absolute;
+		top: 18px;
+		righr: 0px;
+		height: 40px;
+		width: 40px;
+		z-index: 7;
+		transform: rotate(-45deg);
+	}
+}
+
 
 .axis_white text {
 	fill: #FFFFFF;
