@@ -26,6 +26,14 @@ body {
 	z-index: 1;
 }
 
+#logo {
+	position: absolute;
+	top: 5px;
+	left: 8px;
+	width: 85px;
+	z-index: 7;
+}
+
 /* Bar chart */
 .chart {
 	width: 300px;
